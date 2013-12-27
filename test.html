@@ -5,14 +5,11 @@
 	<title>listen js </title>
 </head>
 <script src="js/listen.js"></script>
-<script>
-	 
 
-</script>
 <body>
 	<div class="page-wrap">
 		<a href="#d_1" id="a_1"> 砸金蛋</a>
-		<a href="http://www.baidu.com" id="a_2"> 刮刮卡</a>
+		<a   id="a_2"> 刮刮卡</a>
 		<a href="#d_3" id="a_3">大转盘</a>
 		<a href="#d_4" id="a_4">微调研</a>
 		<a href="#d_5" id="a_5">一战到底</a>
@@ -29,5 +26,19 @@
 		<button class='close'> 关闭</button> 
 
 	</div>
+	<script>
+	 var a = _allyes.$('a');
+	 _allyes.delNode(a);
+  var str =  ".nav  .a  .b" ; 
+  var re = /[\s]+/
+  // var arr = str.split(" ");
+  // var arr2 = 0 ;
+  // _allyes.each(arr,function(i,k){
+  //     if(!_allyes.isEmpty(i)){
+       
+  //     }
+  // });
+_allyes.loadScript("#myScript",'test.json');
+   </script>
 </body>
 </html>
