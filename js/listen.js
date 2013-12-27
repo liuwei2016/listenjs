@@ -1226,7 +1226,8 @@
     return str.replace(/^\s+/,"").replace(/\s+$/,"");
   };
   _.$ = function(str){
-    //str  = ".nav" "p" "#nav"
+    //str  = ".nav" "p" "#nav"  ".nav p" ".nav .a .b" "#nav p a"
+    //:first :':last' 'eq(n)'
     str = _.trim(str);
     var flag = str.slice(0,1);
     if (flag === '.'){
@@ -1238,22 +1239,31 @@
     }
   };
   _.delNode=function (node){
-  if( !_.isEmpty(node) && _.isElement(node[0]) ){
-    var i = 0,  l = node.length ,this_node;
-    for(i; i<l; i++){
-      this_node = node[i];
-      console.log( l, this_node,node[i] );
-      this_node.parentNode.removeChild(this_node);
+    if( !_.isEmpty(node) && _.isElement(node[0]) ){
+      var i = 0,  l = node.length ,this_node;
+      for(i; i<l; i++){
+        this_node = node[node.length-1];
+        // console.log( node,l, i,this_node );
+        this_node.parentNode.removeChild(this_node);
+      }
+    }else if( _.isElement(node) ){
+       node.parentNode.removeChild(node);
     }
-  }else if( _.isElement(node) ){
-     node.parentNode.removeChild(node);
-  }
-};
+    return _ ; 
+  };
+  _.parentNode= function(node,str){
+   
+  };
+  _.childNode = function(node,str){
+  
+  };
+  _.createNode = function(str){
+    return document.createElement(str);
+  };
 
 //cookie //将一个对象
 _.setCookie= function(obj){
    //{aa:123,cc=345,rr= "tt"}
-  
 };
 
 //将一个字符串转化成obj
@@ -1266,14 +1276,54 @@ _.getCookie = function(str){
   _.createXHR=function () {
     return new XMLHttpRequest();
   };
+
+
+  _.loadScript=function(scriptId, url, callback) {  
+  // 根据 url 中是否出现过 "?" 来决定添加时间戳参数时使用 "?" 还是 "&"  
+    var paramPrefix = url.indexOf("?") == -1 ? "?" : "&";  
+    url = url + paramPrefix + "rnd=" + new Date();  
+    var script = _.$(scriptId);  
+    // 没有 id 为 scriptId 的 script 节点，创建并附加到 document.body 上  
+    if (!script) {  
+      script = document.createElement("script");  
+      script.id = scriptId;  
+      document.body.appendChild(script);  
+    }  
+    script.src = url;  
+      
+    // script 节点创建后，加载 url 所指定的资源后，可以进行后续处理  
+    // 不同浏览器判断加载是否完成的回调不一样  
+      
+    // for firefox, google etc.  
+    script.onload = function() {  
+      if (callback) {  
+        callback();  
+      }  
+      /** 
+       * 对于创建过的 scriptId，传递的 url 即使在改变，firefox 中并不会再去加载，
+       ie 是当每次 script  的 url 改变时重新加载资源。
+        为了解决在 firefox 中改变 url 不重新加载的问题，这里把上次加载资源 
+       * 成功后的回调函数执行完毕后，将 script 节点移除，下次就会重新创建 script 节点。 
+       */  
+      document.body.removeChild(script);  
+    }  
+    // for ie  
+    script.onreadystatechange = function() {  
+      if (this.readyState == "loaded" || this.readyState == "complete") {  
+        if (callback) {  
+          callback();  
+        }  
+      }  
+  }  
+}
 // 去得到浏览器的的基本信息
  _.getBaseInfo = function(){
 
- //5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36  
-//Netscape  
-//Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36  
-//Mozilla 
-//
+  //5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36  
+  //Netscape
+  //Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36  
+  //Mozilla 
+  //
    console.log (navigator.appVersion );
    console.log (navigator.appName );
    console.log (navigator.userAgent );
@@ -1329,120 +1379,7 @@ _.interval = function(fn,timeout){
     timer = setInterval(fn,timeout);
   })();
 };
-
-// touch
-// 
-// 
-(function(window) {
-
-    /**
-     * Do not use thumbs.js on touch-enabled devices
-     * 
-     * Thanks to Jesse MacFadyen (purplecabbage):
-     * https://gist.github.com/850593#gistcomment-22484
-     */
-    try {
-        document.createEvent('TouchEvent');
-        return;
-    }
-    catch(e) {
-    }
-
-    /**
-     * Map touch events to mouse events
-     */
-    var eventMap = {
-        'mousedown': 'touchstart',
-        'mouseup':   'touchend',
-        'mousemove': 'touchmove'
-    };
-
-    /**
-     * Initialize thumbs.js
-     */
-    var initialize = function() {
-        /* Bind touch events to mouse events */
-        for (var key in eventMap) {
-            /**
-             * Fire a touch event.
-             *
-             * Monitor mouse events and fire a touch event on the
-             * object broadcasting the mouse event. This approach
-             * likely has poorer performance than hijacking addEventListener
-             * but it is a little more browser friendly.
-             */
-            document.body.addEventListener(key, function(e) {
-                /*
-                 * Supports:
-                 *   - addEventListener
-                 *   - setAttribute
-                 */
-                var event = createTouchEvent(eventMap[e.type], e);
-                e.target.dispatchEvent(event);
-
-                /*
-                 * Supports:
-                 *   - element.ontouchstart
-                 */
-                var fn = e.target['on' + eventMap[e.type]];
-                if (typeof fn === 'function') fn(e);
-            }, false);
-        }
-    };
-
-    /**
-     * Utility function to create a touch event.
-     *
-     * @param  name  {String} of the event
-     * @return event {Object}
-     */
-    var createTouchEvent = function(name, e) {
-        var event = document.createEvent('MouseEvents');
-
-        event.initMouseEvent(
-            name,
-            e.bubbles,
-            e.cancelable,
-            e.view,
-            e.detail,
-            e.screenX,
-            e.screenY,
-            e.clientX,
-            e.clientY,
-            e.ctrlKey,
-            e.altKey,
-            e.shiftKey,
-            e.metaKey,
-            e.button,
-            e.relatedTarget
-        );
-
-        return event;
-    };
-
-    /**
-     * Initialize thumbs.js
-     *
-     * Initializes on document-load and dynamic-loading.
-     */
-    if (document.readyState === 'complete' || document.readyState === 'loaded') {
-        initialize();
-    }
-    else {
-        window.addEventListener('load', initialize, false);
-    }
-
-})(window);
-
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+ 
 // 
 // 
 
