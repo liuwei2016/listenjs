@@ -11,7 +11,7 @@
   // Baseline setup
   // --------------
 
-  // Establish the root object, `window` in the browser, or `exports` on the server.
+  // Establish the root object, `window` in the browser, or `exports` on the servre.
   var root = this;
     // 保存"_"(下划线变量)被覆盖之前的值
     // 如果出现命名冲突或考虑到规范, 
@@ -1203,41 +1203,125 @@
     node.className=names.join(" ");
     return node;
   };
-  _.getById = function(id){
-    return document.getElementById(id);
+  _.getById = function(id,context){
+
+    if( context && context.nodeType === 1){
+      return context.getElementById(id);
+    }else{
+      return document.getElementById(id);
+    }
+    
   };
-  _.getByTag= function(el){
-    return document.getElementsByTagName(el);
+  _.getByTag= function(el,context){
+    if( context && context.nodeType === 1){
+      return context.getElementsByTagName(el);
+    }else{
+      return document.getElementsByTagName(el);
+    }
   };
   _.getByClass=function(className,context){
-      context=context || document;
+      var context=context || document;
+      var  ret=[] , nodeList;
+ 
       if (context.getElementsByClassName) {
-        return context.getElementsByClassName(className);
+        nodeList = context.getElementsByClassName(className);
+        console.log(nodeList);
+        for (var i = 0 ,l = nodeList.length ;i<l; i++){
+          ret.push(nodeList[i]);
+        }
+      }else{
+        var nodes=context.getElementsByTagName('*') ;
+        for (var i=0;i<nodes.length;i++) {
+          if (_.hasClass(nodes[i],className)) ret.push(nodes[i]);
+        }
       }
-      var nodes=context.getElementsByTagName('*'),
-          ret=[];
-      for (var i=0;i<nodes.length;i++) {
-        if (_.hasClass(nodes[i],className)) ret.push(nodes[i]);
-      }
+     
+
       return ret;
   };
    
   _.trim =function(str){
     return str.replace(/^\s+/,"").replace(/\s+$/,"");
   };
-  _.$ = function(str){
-    //str  = ".nav" "p" "#nav"  ".nav p" ".nav .a .b" "#nav p a"
-    //:first :':last' 'eq(n)'
-    str = _.trim(str);
-    var flag = str.slice(0,1);
-    if (flag === '.'){
-      return _.getByClass( str.slice(1) );
-    }else if ( flag === '#'){
-      return _.getById( str.slice(1) );
-    }else{
-       return _.getByTag(str);
-    }
+  _.selector = function(selector,context){
+     var flag = selector.slice(0,1);
+      if (flag === '.'){
+        console.log("_.getByClass");
+        return  _.getByClass( selector.slice(1), context );
+      }else if ( flag === '#'){
+        console.log("_.getById");
+        return  _.getById( selector.slice(1),context );
+      }else{
+         console.log("_.getByTag");
+         return  _.getByTag(selector,context);
+      }
   };
+
+  _.filterDom = function(selector, nodes){
+     var flag = selector.slice(0,1) , result;
+     if (flag === '.'){
+        result = _.filter( nodes , function(node){ return _.hasClass( node, selector.substring(1) ) } );
+
+      }else if( flag === '#'){
+         result =   _.filter( nodes,function(node){ return  node.id === selector.substring(1) }  );
+
+      }else{
+         result =  _.filter( nodes, function(node){ return  node.tagName.toLowerCase() === selector }   );
+      }
+      return result ;
+  };
+
+  // _.$ = function(selector){
+  //   //selector  = ".nav" "p" "#nav"  ".nav p" ".nav .a .b" "#nav p a"
+  //  var results =[] ;
+  //   selector = _.trim(selector);
+
+  //   if(selector){  //选择器不是空
+  //     var flag, strs ,nodes=[] ;
+  //     nodes[0]=[];
+
+  //     strs = _.filter( selector.split(" ") , function(str){
+  //       return str !== "" ; 
+  //     });
+
+  //     // 先选择一个dom出来
+  //     results[0] = nodes[0].push( _.selector(strs[0]) );
+
+  //     if (strs.length > 1){
+
+  //       for (var n = 0 , len = strs.length; n<len; n++){  // 每层的深度查找
+
+  //         if ( nodes[n][0] && n < len-1){ //进行每一个维度上的过滤  nodes[n]不是空的且n小于len-1
+  //           for(var i =0 , l = nodes.length; i<l ; i++ ){
+  //             nodes[n+1] = [] ;l
+  //             console.log(strs[n+1] ,nodes[n][i] );
+  //             nodes[n+1].push( _.selector( strs[n+1] , nodes[n][i]  ) );
+  //           }
+  //         }
+  //         else if ( nodes[n][0] && n === len -1 ){  //nodes[n]不是空的
+  //            results = nodes[len -1] ;
+  //         }else{ //nodes[n]是空的
+  //           results = [] ;
+  //           break;
+  //         }
+  //       }
+  //     }
+
+
+
+      
+  //   }
+
+  //  return results ; 
+  
+  // };
+
+  // console.log( _.$(".page-wrap  a") );
+  // console.log( _.$("body a") );
+  // console.log(_.flatten( _.$("#page_name a") ) ) ;
+
+
+
   _.delNode=function (node){
     if( !_.isEmpty(node) && _.isElement(node[0]) ){
       var i = 0,  l = node.length ,this_node;
@@ -1251,8 +1335,17 @@
     }
     return _ ; 
   };
-  _.parentNode= function(node,str){
-   
+
+  // 选择所有的parentNode 最大到body
+  _.parentNodes= function(node){
+   var  result = [];
+   if (node.nodeType ===1){
+    while(  node.tagName !== "HTML" && node   ){
+      result.push( node.parentNode ) ;
+      node =  node.parentNode ; 
+    }
+   }
+   return result ; 
   };
   _.childNode = function(node,str){
   
@@ -1260,16 +1353,7 @@
   _.createNode = function(str){
     return document.createElement(str);
   };
-
- //cookie //将一个对象
- _.setCookie= function(obj){
-   //{aa:123,cc=345,rr= "tt"}
-};
-
-//将一个字符串转化成obj
-_.getCookie = function(str){
- //str="aa=bb;cc=dd;ff=;gg=ii";
-};
+ 
 
 
 // ajax 
@@ -1277,45 +1361,49 @@ _.getCookie = function(str){
     return new XMLHttpRequest();
   };
 
-
-  _.loadScript=function(scriptId, url, callback) {  
+  _.sendMessage=function(scriptId, url ,data ,callback) {  
   // 根据 url 中是否出现过 "?" 来决定添加时间戳参数时使用 "?" 还是 "&"  
     var paramPrefix = url.indexOf("?") == -1 ? "?" : "&";  
-    url = url + paramPrefix + "rnd=" + Math.floor(  new Date()  ) +Math.random()*10 ;  
-    var script = _.$(scriptId);  
+    url = url + paramPrefix + _.params(data) +  "&rnd=" +  Math.floor(new Date() ) + parseInt( Math.random()*1000);  
+    var script = _.getById("#"+scriptId);  
     // 没有 id 为 scriptId 的 script 节点，创建并附加到 document.body 上  
     if (!script) {  
       script = document.createElement("script");  
       script.id = scriptId;  
-      document.body.appendChild(script);  
+
+      document.body.appendChild(script);
+
     }  
     script.src = url;  
-      
-    // script 节点创建后，加载 url 所指定的资源后，可以进行后续处理  
-    // 不同浏览器判断加载是否完成的回调不一样  
-      
-    // for firefox, google etc.  
+
     script.onload = function() {  
       if (callback) {  
         callback();  
       }  
-      /** 
-       * 对于创建过的 scriptId，传递的 url 即使在改变，firefox 中并不会再去加载，
-       ie 是当每次 script  的 url 改变时重新加载资源。
-        为了解决在 firefox 中改变 url 不重新加载的问题，这里把上次加载资源 
-       * 成功后的回调函数执行完毕后，将 script 节点移除，下次就会重新创建 script 节点。 
-       */  
       document.body.removeChild(script);  
     }  
-    // for ie  
-    script.onreadystatechange = function() {  
-      if (this.readyState == "loaded" || this.readyState == "complete") {  
-        if (callback) {  
-          callback();  
-        }  
-      }  
-  }  
 }
+
+  _.title = document.title;
+  _.href = root.location.href;
+  _.navigator = root.navigator;
+  _.userAgent = root.navigator.userAgent;
+
+  // http://www.weimob.com/weisite/home?pid=39019&bid=55959&wechatid=fromUsername&wxref=mp.weixin.qq.com
+
+  // 将一个url问号后的参数解析成对象
+  _.urlParam = function(url){
+   var obj ={},arr,index,info;
+   if ( ( index =  url.indexOf("?")+1 ) >1 ){
+    arr = url.substring(index).split("&");
+     _.each( arr,function(i){
+      info = i.split("=");
+      obj[info[0]] = info[1]; 
+     });
+   }
+   return obj ;
+  };
+
 // 去得到浏览器的的基本信息
  _.getBaseInfo = function(){
 
@@ -1324,27 +1412,37 @@ _.getCookie = function(str){
   //Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36  
   //Mozilla 
   //
-   console.log (navigator.appVersion );
-   console.log (navigator.appName );
-   console.log (navigator.userAgent );
-   console.log (navigator.appCodeName );
+
+   var obj = {},re,re2,type;
+   obj = _.clone(  _.urlParam(_.href)  ); 
+   obj.page_title = _.title;
+   if (  type = _.href.match(/\/([a-z]{1,})\?/i) ){
+      obj.type = type[1] ;
+   }else{
+      obj.type  = "NULL" ;
+   };
    var userAgent =  navigator.userAgent;
-
    //匹配括号外的信息
-   var re =  /[a-zA-Z]{1,}\/[0-9\.\,]{1,}/g;
+    re =  /[a-zA-Z]{1,}\/[0-9\.\,]{1,}/g ;
    //匹配括号内的信息
-   var re2 = /\(([a-zA-Z0-9\;\.\,\s\:]{1,})\)/g;
+    re2 = /\(([a-zA-Z0-9\;\.\,\s\:]{1,})\)/g ;
 
-   userAgent.replace(re ,function(a,b){
-    console.log(a,"####");
-   });
+   // userAgent.replace(re ,function(a,b){
+   //  console.log(a,"####");
+   // });
 
+   // userAgent.replace(re2,function(a,b){
+   //   console.log(a,b ,"####");
+   // });
 
-   userAgent.replace(re2,function(a,b){
-    console.log(a,b ,"####");
-   });
+   return obj ; 
+
  };
-// _.getBaseInfo();
+
+// 对外接口 一
+ _.sendBaseMessage = function(obj){
+   _.sendMessage(obj.id, obj.url, obj.data, obj.callback); 
+ };
 
 //event 
 _.on = function(node,evtype,fn) {
@@ -1368,8 +1466,14 @@ _.off = function(node,evtype,fn){
 _.text =function(node){
    return (node.innerText || node.textContent);
 };
-_.val = function(node){
-   return node.value;
+_.val = function(node,val){
+  if (arguments.length ===1) {
+    return node.value;
+  }else{
+    node.value = val ;
+    return node ;
+  }
+    
 };
 
 _.interval = function(fn,timeout){
@@ -1380,63 +1484,21 @@ _.interval = function(fn,timeout){
   })();
 };
  
-// 
-// 
-
-// _.addEvent(window,'beforeunload',function(){
-//   // debugger;
-//   _.ajax({
-//     url:'test.json',
-//     data:{aa:"22"}, 
-//     dataType:"json", 
-//     async:false,
-//     success:function(){
-//      debugger;
-//     } 
-//   });
-//   // debugger;
-    
-// });
-
-// _.addEvent(window,'load',function(){
-
-//   _.ajax({url:'test.json',data:{aa:"22"} });
  
-// });
-
-// _.addEvent(window,'unload',function(){
-//   alert("unload");
-// });
-
-//window.location 信息 
-  //ancestorOrigins: DOMStringList
-  // assign: function () { [native code] }
-  // hash: ""
-  // host: "www.englishfree.com.cn"
-  // hostname: "www.englishfree.com.cn"
-  // href: "http://www.englishfree.com.cn/schoolfree/cn/computer/text/java/011.htm#d3"
-  // origin: "http://www.englishfree.com.cn"
-  // pathname: "/schoolfree/cn/computer/text/java/011.htm"
-  // port: ""
-  // protocol: "http:"
-  // reload: function reload() { [native code] }
-  // replace: function () { [native code] }
-  // search: ""
-  // toString: function toString() { [native code] }
-  // valueOf: function valueOf() { [native code] }
-
+ 
    
  /*  args {
   url :  www.playdata.cn  //必填
-  method  get or post 
+  method  get or post  //default get 
   success :function
   error:function
   data {key:value}  
   cache Boolean  true or false
   dataType: text  or json 
-  async: true false  //默认异步 
+  async: true false  //默认异步
  }
 */
+   
 
 // 序列化参数 主要是 为ajax 服务
   _.params=function (obj) {
@@ -1448,13 +1510,7 @@ _.interval = function(fn,timeout){
       }
       return result.join("&");
   };
-
-// window.onbeforeunload = function(){  
-//     localStorage.aa="123";
-//     console.log("123");
-//     debugger
-// };
-
+ 
 _.cookie = function(key, value, options) {
 
         // key and at least value given, set cookie...
@@ -1492,6 +1548,18 @@ _.cookie = function(key, value, options) {
         return null;
     };
 
+  _.listen = function(arr){
+   //arr 是一个二维数组 arr[0][0] 是一个dom选择符 arr[0][1]是监听的事件名称 后元素是用来作为参数
+   _.each(arr,function(line,i){
+    _.on(_.$(line[0]) ,'click', function(){
+        var obj ={};
+        obj.action_name =line[1];
+        obj.timer = new Date();
+        var url = "test.json?"+_.params(obj);
+      _.sendMessage("#message",url);
+    });
+   });
+  };
 
   _.ajax=function(args) {
     var xhr=_.createXHR(),data=_.params(args.data);
@@ -1523,10 +1591,8 @@ _.cookie = function(key, value, options) {
           // console.log("[NEED　JSON]");
           if(args.success){
            args.success( JSON.parse(xhr.responseText) ) ;
-
           }
         }
-       
       }else{
         if (args.error){
          args.error();
@@ -1566,7 +1632,6 @@ _.cookie = function(key, value, options) {
   });
 
   _.extend(_.prototype, {
-
     // Start chaining a wrapped Underscore object.
     chain: function() {
       this._chain = true;

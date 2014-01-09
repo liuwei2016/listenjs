@@ -2,44 +2,58 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>listen js </title>
+	<title> 首页 </title>
 </head>
-<script src="js/listen.js"></script>
+
 
 <body>
-	<div class="page-wrap">
-		<a href="#d_1" id="a_1"> 砸金蛋</a>
-		<a   id="a_2"> 刮刮卡</a>
-		<a href="#d_3" id="a_3">大转盘</a>
-		<a href="#d_4" id="a_4">微调研</a>
-		<a href="#d_5" id="a_5">一战到底</a>
+	<div class="page-wrap" id ="page_name">
+		<a href="test2.html" id="a_1"> 砸金蛋</a>
+		<a href="test3.html" id="a_2"> 刮刮卡</a>
+		<a href="test4.html" id="a_3">大转盘</a>
+		<a href="test5.html" id="a_4">微调研</a>
+		<a href="test6.html" id="a_5">一战到底</a>
 
-		<input type="text" value ="11">
-		<input type="text" value ="22" >
-		<input type="text" value ="23">
-		<input type="text" value ="44">
+		<div class="input">
+			<p>
+				<input type="text" value ="11">
+				<input type="text" value ="22">
+				<input type="text" value ="23">
+				<input type="text" value ="44">
+			</p>
+		</div>
 
-
-		<button > 返回</button> 
-		<button> 前进</button> 
-		<a href="#">首页</a>
-		<button class='close'> 关闭</button> 
+		<button id="retrun" href="history.go(-1)"> 返回</button> 
+		<button id="go" href="history.go(1)"> 前进</button> 
+		<a id="home" href="test.html" >首页</a>
+		<button class='close' id="close"> 关闭</button> 
 
 	</div>
-	<script>
-	 var a = _allyes.$('a');
-	 _allyes.delNode(a);
-  var str =  ".nav  .a  .b" ; 
-  var re = /[\s]+/
-  // var arr = str.split(" ");
-  // var arr2 = 0 ;
-  // _allyes.each(arr,function(i,k){
-  //     if(!_allyes.isEmpty(i)){
-       
-  //     }
-  // });
-_allyes.loadScript("#myScript",'http://su.bdimg.com/static/nav/js/new_user_e100f6e8.js.js?aa=123&bb=22&dd=44');
-_allyes.loadScript("#myScript",'http://su.bdimg.com/static/nav/js/new_user_e100f6e8.js?aa=123&bb=22&dd=44');
-   </script>
+
+	<div class="page-wrap">
+		<a href="test2.html" id="a_1"> 砸金蛋</a>
+		<a href="test3.html" id="a_2"> 刮刮卡</a>
+		<a href="test4.html" id="a_3">大转盘</a>
+		<a href="test5.html" id="a_4">微调研</a>
+		<a href="test6.html" id="a_5">一战到底</a>
+
+		<div class="input">
+			<p>
+				<input type="text" value ="11">
+				<input type="text" value ="22">
+				<input type="text" value ="23">
+				<input type="text" value ="44">
+			</p>
+		</div>
+
+		<button id="retrun" href="history.go(-1)"> 返回</button> 
+		<button id="go" href="history.go(1)"> 前进</button> 
+		<a id="home" href="test.html" >首页</a>
+		<button class='close' id="close"> 关闭</button> 
+
+	</div>
+
+	<script src="js/listen.js"></script>
+  <script src="js/test.js"></script>
 </body>
 </html>
